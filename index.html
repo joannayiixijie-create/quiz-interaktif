@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音乐王国拯救任务 · Misi Selamatkan Kerajaan Muzik</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            font-family: 'Segoe UI', 'Fredoka One', 'Comic Sans MS', cursive, sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #1a1e2b 0%, #2d2f42 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            margin: 0;
+        }
+        .game-container {
+            max-width: 1000px;
+            width: 100%;
+            background: #3e3f5a;
+            border-radius: 60px 60px 40px 40px;
+            box-shadow: 0 25px 40px rgba(0,0,0,0.7), inset 0 0 0 2px #9b8ec4, inset 0 0 20px #6a5e8a;
+            padding: 24px 24px 32px;
+            position: relative;
+        }
+
+        /* 生命值 + 物品栏 */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 0 15px;
+        }
+        .hearts {
+            display: flex;
+            gap: 8px;
+            font-size: 34px;
+            filter: drop-shadow(0 4px 6px black);
+        }
+        .heart {
+            color: #ff4d6d;
+            transition: transform 0.2s;
+        }
+        .heart.lost {
+            color: #4a3f55;
+            transform: scale(0.8);
+            opacity: 0.5;
+        }
+        .inventory {
+            display: flex;
+            gap: 20px;
+            background: #2b2540cc;
+            padding: 8px 20px;
+            border-radius: 100px;
+            border: 2px solid #baa9e6;
+            box-shadow: inset 0 2px 5px #00000055;
+        }
+        .inv-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #ffe9b0;
+            font-size: 12px;
+            font-weight: bold;
+            text-shadow: 0 2px 3px black;
+            opacity: 0.5;
+            transition: opacity 0.3s, transform 0.2s;
+        }
+        .inv-item.obtained {
+            opacity: 1;
+            transform: scale(1.1);
+            color: #ffd966;
+        }
+        .inv-icon {
+            font-size: 28px;
+            line-height: 1;
+            filter: drop-shadow(0 0 6px gold);
+        }
+
+        /* 主内容区 */
+        .story-panel {
+            background: #efe6ff;
+            border-radius: 80px 80px 40px 40px;
+            padding: 22px 30px 30px;
+            box-shadow: inset 0 0 0 4px #bbadde, inset 0 0 30px #b3a2d6, 0 10px 20px black;
+            min-height: 460px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 场景文字 */
+        .malay-text {
+            font-size: 20px;
+            color: #1b1426;
+            font-weight: 600;
+            text-align: center;
+            background: #fefbff;
+            padding: 12px 20px;
+            border-radius: 50px;
+            margin-bottom: 18px;
+            box-shadow: inset 0 2px 6px #b6a9d1, 0 4px 0 #7e6b9e;
+            border-bottom: 2px solid #aa99cc;
+            line-height: 1.4;
+        }
+        .chinese-hint {
+            font-size: 15px;
+            color: #4e4370;
+            font-weight: 400;
+            display: block;
+            margin-top: 2px;
+        }
+
+        /* 按钮通用 */
+        .btn {
+            border: none;
+            background: #ffb347;
+            background: linear-gradient(180deg, #ffd966, #e69900);
+            color: #2a1e0c;
+            font-weight: 800;
+            font-size: 22px;
+            padding: 14px 40px;
+            border-radius: 60px;
+            box-shadow: 0 8px 0 #885e00, 0 12px 20px black;
+            cursor: pointer;
+            transition: all 0.08s ease;
+            letter-spacing: 1px;
+            border: 2px solid #ffecb0;
+            text-shadow: 0 1px 0 #ffeeaa;
+            margin: 8px auto;
+            display: inline-block;
+        }
+        .btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #885e00, 0 8px 18px black;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #885e00;
+            pointer-events: none;
+        }
+
+        /* 选项按钮 */
+        .option-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .option-btn {
+            background: #f2e9ff;
+            border: 4px solid #9382c1;
+            border-radius: 50px;
+            padding: 16px 20px;
+            font-size: 20px;
+            font-weight: 600;
+            color: #2b1e4a;
+            text-align: left;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #574b7c, 0 8px 12px black;
+            transition: all 0.05s ease;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .option-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #574b7c, 0 8px 12px black;
+        }
+        .option-btn.correct-highlight {
+            background: #b9ffb0;
+            border-color: #3b9e3b;
+            box-shadow: 0 4px 0 #1f661f;
+        }
+        .option-btn.wrong-highlight {
+            background: #ffb3b3;
+            border-color: #b33;
+        }
+
+        /* 音符、桥、机器等视觉元素 */
+        .bridge-area {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 8px;
+            margin: 20px 0 10px;
+            perspective: 500px;
+        }
+        .bridge-slab {
+            width: 80px;
+            height: 80px;
+            background: #8b7ba8;
+            border-radius: 16px;
+            border: 4px solid #483e63;
+            box-shadow: 0 8px 0 #2f2741, 0 12px 12px black;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            transition: background 0.6s, box-shadow 0.6s, transform 0.2s;
+            position: relative;
+        }
+        .bridge-slab.lit {
+            background: #ffd966;
+            box-shadow: 0 0 20px 8px #ffb347, 0 8px 0 #885e00;
+            border-color: #fff1b0;
+            transform: scale(1.02);
+        }
+        .staff-note {
+            font-size: 38px;
+            line-height: 1;
+            filter: drop-shadow(0 2px 2px black);
+        }
+
+        /* 机器装置 */
+        .machine-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            margin: 10px 0;
+        }
+        .device {
+            background: #29223b;
+            border-radius: 30px;
+            padding: 20px;
+            box-shadow: inset 0 0 0 3px #7a6a9e, 0 8px 0 #110e1a;
+            flex: 1 1 260px;
+        }
+        .device h3 {
+            color: #ffe3a3;
+            text-align: center;
+            margin-bottom: 12px;
+            font-size: 20px;
+            text-shadow: 0 2px 0 black;
+        }
+        .note-rest-pair {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #3e3657;
+            padding: 8px 12px;
+            border-radius: 40px;
+            margin: 8px 0;
+            color: white;
+            font-size: 22px;
+            border: 2px solid #8d7db3;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .note-rest-pair.selected {
+            background: #7866a8;
+            box-shadow: 0 0 0 3px #ffd966;
+        }
+        .rest-slot {
+            background: #222;
+            border-radius: 30px;
+            padding: 4px 16px;
+            font-size: 28px;
+            letter-spacing: 4px;
+            border: 2px dashed #bbaaff;
+        }
+        .battery-grid {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin: 12px 0;
+        }
+        .battery-cell {
+            width: 45px;
+            height: 60px;
+            background: #222;
+            border-radius: 12px;
+            border: 3px solid #c7b3ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: #ffd966;
+            text-shadow: 0 0 6px gold;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .battery-cell.filled {
+            background: #ffb347;
+            box-shadow: 0 0 16px #ffbb33;
+            border-color: #ffea9b;
+        }
+        .battery-cell.filled .sym {
+            color: #1f1a0c;
+            filter: drop-shadow(0 1px 0 white);
+        }
+
+        /* 第三关谱表 */
+        .staff-container {
+            background: #fcf7ff;
+            border-radius: 30px;
+            padding: 20px 10px;
+            margin: 16px 0;
+            box-shadow: inset 0 0 0 3px #b6a2e0;
+        }
+        .staff-lines {
+            font-size: 24px;
+            color: #2e1f4b;
+            text-align: center;
+            letter-spacing: 8px;
+        }
+        .clef {
+            font-size: 60px;
+            line-height: 0.8;
+            vertical-align: middle;
+        }
+        .music-symbol {
+            font-size: 32px;
+            margin: 0 2px;
+            display: inline-block;
+        }
+
+        /* 大门 */
+        .gate-animation {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .castle-door {
+            width: 180px;
+            height: 240px;
+            background: #6e4f1e;
+            border-radius: 90px 90px 10px 10px;
+            border: 10px solid #c9a859;
+            box-shadow: 0 0 0 4px #3b2b0e, 0 20px 30px black;
+            position: relative;
+            overflow: hidden;
+            transition: transform 1.2s cubic-bezier(0.2, 0.9, 0.4, 1);
+        }
+        .castle-door.open {
+            transform: perspective(900px) rotateY(20deg) scale(0.98);
+            background: #ffefc0;
+            box-shadow: 0 0 60px 20px #ffd966;
+        }
+        .door-handle {
+            width: 20px;
+            height: 20px;
+            background: gold;
+            border-radius: 50%;
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            box-shadow: 0 0 12px gold;
+        }
+
+        /* 最终皇冠 */
+        .crown-reward {
+            font-size: 100px;
+            text-align: center;
+            filter: drop-shadow(0 0 30px gold);
+            animation: float 2s infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+
+        /* 工具类 */
+        .hidden {
+            display: none !important;
+        }
+        .center {
+            text-align: center;
+        }
+        .mt-20 { margin-top: 20px; }
+        .flex-center { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 20px; }
+
+        /* 反馈文字 */
+        .feedback {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            color: #1f3a1f;
+            background: #efffcf;
+            padding: 10px;
+            border-radius: 40px;
+            margin: 12px auto;
+            max-width: 80%;
+            border: 3px solid #9bc46b;
+            box-shadow: inset 0 0 10px #b3d68b;
+        }
+        .feedback.error {
+            background: #ffe0e0;
+            border-color: #d66;
+            color: #5a1e1e;
+        }
+
+        /* 按钮小尺寸 */
+        .btn-small {
+            font-size: 18px;
+            padding: 10px 30px;
+            box-shadow: 0 5px 0 #885e00;
+        }
+
+        .action-row {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 16px;
+        }
+
+        /* 重置按钮 */
+        .reset-btn {
+            background: #7f6b9c;
+            background: linear-gradient(180deg, #a38fc9, #6b5692);
+            box-shadow: 0 5px 0 #3b2e55;
+            color: white;
+            font-size: 16px;
+            padding: 10px 24px;
+        }
+    </style>
+</head>
+<body>
+<div class="game-container" id="gameContainer">
+    <!-- 顶栏：生命值 + 物品栏 -->
+    <div class="top-bar">
+        <div class="hearts" id="heartsDisplay">
+            <span class="heart">❤️</span>
+            <span class="heart">❤️</span>
+            <span class="heart">❤️</span>
+        </div>
+        <div class="inventory" id="inventoryDisplay">
+            <div class="inv-item" id="invPic"><span class="inv-icon">🔮</span><span>Kristal Pic</span></div>
+            <div class="inv-item" id="invDetik"><span class="inv-icon">⚙️</span><span>Kristal Detik</span></div>
+            <div class="inv-item" id="invKunci"><span class="inv-icon">🗝️</span><span>Kunci Muzik</span></div>
+        </div>
+    </div>
+
+    <!-- 故事面板 所有关卡内容都在这里切换 -->
+    <div class="story-panel" id="storyPanel">
+        <!-- 开场 -->
+        <div id="sceneStart">
+            <div class="malay-text">
+                Oh, tidak! Kerajaan Muzik kehilangan bunyinya!<br>
+                <span class="chinese-hint">音乐王国失去了声音！</span>
+            </div>
+            <div class="malay-text" style="font-size:18px;">
+                Jambatan pic telah rosak, mesin detik terhenti dan pintu istana terkunci.<br>
+                <span class="chinese-hint">音符桥损坏，节拍机器停止，城堡大门紧锁。</span>
+            </div>
+            <div class="flex-center mt-20">
+                <button class="btn" id="btnStartMission">🎵 Mulakan Misi! 🎵</button>
+            </div>
+        </div>
+
+        <!-- 关卡1 修复音符桥 -->
+        <div id="sceneLevel1" class="hidden">
+            <div class="malay-text">
+                Misi 1 — Baiki Jambatan Pic<br>
+                <span class="chinese-hint">修复音符桥 · 读出石板上的音名</span>
+            </div>
+            <div class="bridge-area" id="bridgeSlabs">
+                <!-- 动态生成5块石板 -->
+            </div>
+            <div class="malay-text" style="font-size:16px; background:#e8dcff;">
+                Baca not dari kiri ke kanan. Pilih kod yang betul untuk membaiki jambatan.<br>
+                <span class="chinese-hint">从左到右读谱，选择正确的修桥密码。</span>
+            </div>
+            <div class="option-group" id="level1Options"></div>
+            <div id="feedbackLevel1" class="feedback hidden"></div>
+        </div>
+
+        <!-- 关卡2 启动节拍机器 -->
+        <div id="sceneLevel2" class="hidden">
+            <div class="malay-text">
+                Misi 2 — Hidupkan Mesin Detik<br>
+                <span class="chinese-hint">启动节拍机器 · 配对休止符 & 补足能量</span>
+            </div>
+            <div class="machine-panel">
+                <!-- 装置A 配对 -->
+                <div class="device" id="deviceA">
+                    <h3>⚡ Sambungkan Not & Rehat ⚡</h3>
+                    <div id="pairingContainer"></div>
+                </div>
+                <!-- 装置B 电池 -->
+                <div class="device" id="deviceB">
+                    <h3>🔋 4 Detik = 4拍能量</h3>
+                    <div class="battery-grid" id="batteryGrid">
+                        <div class="battery-cell filled" id="bat1"><span class="sym">𝅗𝅥</span></div>
+                        <div class="battery-cell" id="bat2"></div>
+                        <div class="battery-cell" id="bat3"></div>
+                        <div class="battery-cell" id="bat4"></div>
+                    </div>
+                    <div id="level2Options" class="option-group" style="margin-top:10px;"></div>
+                </div>
+            </div>
+            <div id="feedbackLevel2" class="feedback hidden"></div>
+        </div>
+
+        <!-- 关卡3 城堡开门 -->
+        <div id="sceneLevel3" class="hidden">
+            <div class="malay-text">
+                Misi 3 — Buka Pintu Istana<br>
+                <span class="chinese-hint">音乐密码 · 读谱、听辨、拍节奏</span>
+            </div>
+            <div class="staff-container">
+                <div class="staff-lines">
+                    <span class="clef">𝄞</span> 
+                    <span class="music-symbol">G♩</span> <span class="music-symbol">A♩</span> <span class="music-symbol">B𝅗𝅥</span> 
+                    <span style="margin-left:20px;">|</span>
+                    <span class="music-symbol">C′𝅘𝅥𝅯</span> <span class="music-symbol">D′𝅘𝅥𝅯</span> <span class="music-symbol">𝄽</span> <span class="music-symbol">G𝅗𝅥</span>
+                </div>
+                <div style="font-size:14px; color:#493a6b; text-align:center; margin-top:6px;">Bar 1: G A B (二分) | Bar 2: C' D' (八分) 休止 G (二分)</div>
+            </div>
+            <div class="malay-text" style="font-size:16px;">
+                Baca nama pic dan nilai setiap not. Kenal pasti tanda rehat.<br>
+                <span class="chinese-hint">读出音名与时值，注意休止符。</span>
+            </div>
+            <div class="action-row">
+                <button class="btn btn-small" id="btnHint">💡 Petunjuk</button>
+            </div>
+            <div id="hintArea" class="hidden" style="background:#ffeaa5; padding:12px; border-radius:30px; margin:12px; font-size:18px;">
+                💡 第1小节：G四分、A四分、B二分（共4拍）；第2小节：C'八分、D'八分（合1拍）、四分休止（1拍）、G二分（2拍）
+            </div>
+            <div class="malay-text" style="font-size:16px;">
+                Dengar tiga kod irama. Pilih kod yang sepadan dengan notasi.<br>
+                <span class="chinese-hint">听三段节奏，选择与乐谱一致的拍手版本。</span>
+            </div>
+            <div class="option-group" id="level3Options"></div>
+            <div id="feedbackLevel3" class="feedback hidden"></div>
+            <div id="clapSection" class="hidden">
+                <div class="malay-text" style="font-size:18px;">👏 Giliran kamu! Tepuk kod irama. Jangan bertepuk semasa tanda rehat.<br>
+                <span class="chinese-hint">跟着拍一次（第一拍：C'D'均匀两下；第二拍休止；第三拍G）</span>
+                </div>
+                <div class="flex-center">
+                    <button class="btn btn-small" id="btnClapDone">✅ Saya Sudah Cuba!</button>
+                </div>
+            </div>
+            <div class="gate-animation">
+                <div class="castle-door" id="castleDoor">
+                    <div class="door-handle"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 结局 -->
+        <div id="sceneEnd" class="hidden">
+            <div class="malay-text">
+                Tahniah, Penyelamat Muzik!<br>
+                <span class="chinese-hint">恭喜！音乐王国恢复声音！</span>
+            </div>
+            <div class="crown-reward" id="crownReward">👑</div>
+            <div class="malay-text" style="font-size:18px;">
+                Kamu telah membaca not, memadankan nilai not dengan tanda rehat dan menggunakan notasi untuk menghasilkan corak irama.<br>
+                <span class="chinese-hint">你读谱、配对休止符、并用节奏拯救了王国！</span>
+            </div>
+            <div style="background:#e8dcff; border-radius:40px; padding:18px; margin:18px 0;">
+                <p style="font-size:20px; font-weight:bold; color:#2b1e4a;">Misi manakah yang paling mencabar?</p>
+                <div class="option-group" style="flex-direction:row; flex-wrap:wrap; justify-content:center;">
+                    <button class="option-btn" style="padding:10px 24px; font-size:16px;" onclick="selectReflection(this)">Mengenal kedudukan not</button>
+                    <button class="option-btn" style="padding:10px 24px; font-size:16px;" onclick="selectReflection(this)">Mengira nilai not dan tanda rehat</button>
+                    <button class="option-btn" style="padding:10px 24px; font-size:16px;" onclick="selectReflection(this)">Membaca dan menepuk notasi</button>
+                </div>
+            </div>
+            <div class="flex-center">
+                <button class="btn" id="btnQuiz">📝 Teruskan ke Kuiz Interaktif</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 重置按钮 (右下角) -->
+    <div style="display: flex; justify-content: flex-end; margin-top: 12px;">
+        <button class="btn reset-btn" id="resetGame">🔄 Main Semula</button>
+    </div>
+</div>
+
+<script>
+    // ========== 游戏状态 ==========
+    let lives = 3;
+    let currentScene = 'start'; // start, level1, level2, level3, end
+    let inventory = { pic: false, detik: false, kunci: false };
+
+    // 关卡1 数据
+    const slabsData = [
+        { note: 'B', position: '第三条线' },
+        { note: 'G', position: '第二条线' },
+        { note: 'D′', position: '第四条线' },
+        { note: 'A', position: '第二个间' },
+        { note: 'C′', position: '第三个间' }
+    ];
+    const level1CorrectCode = 'B – G – D′ – A – C′';
+    let level1Answered = false;
+
+    // 关卡2 数据
+    let pairingSelectedNote = null; // 当前选中的音符索引
+    const pairData = [
+        { noteSym: '𝅝', noteName: 'Semibrif', restSym: '𝄻', restName: 'Rehat semibrif' },
+        { noteSym: '𝅗𝅥', noteName: 'Minim', restSym: '𝄼', restName: 'Rehat minim' },
+        { noteSym: '♩', noteName: 'Krocet', restSym: '𝄽', restName: 'Rehat krocet' },
+        { noteSym: '𝅘𝅥𝅯', noteName: 'Kuaver', restSym: '𝄾', restName: 'Rehat kuaver' }
+    ];
+    // 打乱配对顺序 (仅展示用)
+    const shuffledPairIndices = [2, 0, 3, 1]; // 用于显示
+    let pairMatched = [false, false, false, false]; // 按pairData索引标记已配对
+    // 电池选项
+    const batteryOptions = [
+        { id: 'A', desc: '𝅘𝅥𝅯 + 𝅘𝅥𝅯 + 𝄽', value: 0.5+0.5+1, correct: true },
+        { id: 'B', desc: '♩ + 𝅘𝅥𝅯', value: 1+0.5, correct: false },
+        { id: 'C', desc: '𝅗𝅥 + 𝄽', value: 2+1, correct: false }
+    ];
+    let deviceAFixed = false;
+    let deviceBFixed = false;
+
+    // 关卡3
+    let level3AudioSelected = false;
+    let level3ClapDone = false;
+
+    // 音效上下文
+    let audioCtx = null;
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+    function playTone(freq, duration, type = 'sine', vol = 0.2) {
+        try {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            gain.gain.value = vol;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+            osc.stop(audioCtx.currentTime + duration);
+        } catch (e) { console.warn('audio error', e); }
+    }
+    function playSuccess() {
+        playTone(660, 0.15, 'triangle');
+        setTimeout(() => playTone(880, 0.25, 'triangle'), 120);
+    }
+    function playWrong() {
+        playTone(220, 0.4, 'sawtooth', 0.15);
+    }
+    function playCrystal() {
+        playTone(1046, 0.1, 'sine');
+        setTimeout(() => playTone(1318, 0.2, 'sine'), 100);
+        setTimeout(() => playTone(1568, 0.3, 'sine'), 200);
+    }
+    function playVictory() {
+        [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => playTone(f, 0.3, 'triangle'), i * 150));
+    }
+
+    // ========== 界面渲染 ==========
+    function updateHearts() {
+        const hearts = document.querySelectorAll('.heart');
+        hearts.forEach((h, i) => {
+            if (i < lives) h.classList.remove('lost');
+            else h.classList.add('lost');
+        });
+    }
+    function updateInventory() {
+        document.getElementById('invPic').classList.toggle('obtained', inventory.pic);
+        document.getElementById('invDetik').classList.toggle('obtained', inventory.detik);
+        document.getElementById('invKunci').classList.toggle('obtained', inventory.kunci);
+    }
+    function showScene(sceneId) {
+        ['sceneStart', 'sceneLevel1', 'sceneLevel2', 'sceneLevel3', 'sceneEnd'].forEach(id => {
+            document.getElementById(id).classList.add('hidden');
+        });
+        document.getElementById(sceneId).classList.remove('hidden');
+        currentScene = sceneId;
+    }
+    function loseLife() {
+        if (lives > 0) {
+            lives--;
+            updateHearts();
+            playWrong();
+            if (lives === 0) {
+                setTimeout(() => {
+                    alert('Nyawa habis! Kamu boleh cuba lagi. Tekan "Main Semula".');
+                    resetGame();
+                }, 400);
+            }
+        }
+    }
+
+    // ========== 重置 ==========
+    function resetGame() {
+        lives = 3;
+        inventory = { pic: false, detik: false, kunci: false };
+        updateHearts();
+        updateInventory();
+        // 重置关卡1
+        level1Answered = false;
+        // 重置关卡2
+        pairMatched = [false, false, false, false];
+        pairingSelectedNote = null;
+        deviceAFixed = false;
+        deviceBFixed = false;
+        // 重置关卡3
+        level3AudioSelected = false;
+        level3ClapDone = false;
+        document.getElementById('castleDoor').classList.remove('open');
+        document.getElementById('clapSection').classList.add('hidden');
+        document.getElementById('hintArea').classList.add('hidden');
+        // 清理反馈
+        document.querySelectorAll('.feedback').forEach(f => f.classList.add('hidden'));
+        // 清空动态区域并重新渲染
+        renderLevel1();
+        renderLevel2();
+        renderLevel3();
+        showScene('sceneStart');
+        // 重置所有选项高亮
+        document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('correct-highlight', 'wrong-highlight'));
+    }
+
+    // ========== 关卡1 渲染 ==========
+    function renderLevel1() {
+        const container = document.getElementById('bridgeSlabs');
+        container.innerHTML = '';
+        slabsData.forEach((slab, idx) => {
+            const div = document.createElement('div');
+            div.className = 'bridge-slab';
+            div.id = `slab-${idx}`;
+            div.innerHTML = `<span class="staff-note">🎵</span><span style="font-size:12px;opacity:0.8;">${slab.position}</span>`;
+            container.appendChild(div);
+        });
+        // 选项
+        const opts = [
+            'B – G – D′ – A – C′',
+            'B – A – D′ – G – C′',
+            'C′ – G – D′ – A – B'
+        ];
+        const optContainer = document.getElementById('level1Options');
+        optContainer.innerHTML = '';
+        opts.forEach((text, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = text;
+            btn.dataset.index = idx;
+            btn.addEventListener('click', () => handleLevel1Choice(idx, btn));
+            optContainer.appendChild(btn);
+        });
+    }
+
+    function handleLevel1Choice(idx, btn) {
+        if (level1Answered) return;
+        if (idx === 0) {
+            // 正确
+            level1Answered = true;
+            playSuccess();
+            // 石板逐个亮起
+            slabsData.forEach((_, i) => {
+                setTimeout(() => {
+                    document.getElementById(`slab-${i}`).classList.add('lit');
+                }, i * 200);
+            });
+            document.querySelectorAll('#level1Options .option-btn').forEach(b => b.disabled = true);
+            btn.classList.add('correct-highlight');
+            document.getElementById('feedbackLevel1').classList.remove('hidden');
+            document.getElementById('feedbackLevel1').textContent = '✅ Jambatan berjaya dibaiki! Kamu memperoleh Kristal Pic!';
+            document.getElementById('feedbackLevel1').classList.remove('error');
+            inventory.pic = true;
+            updateInventory();
+            playCrystal();
+            setTimeout(() => {
+                showScene('sceneLevel2');
+            }, 1800);
+        } else {
+            // 错误
+            btn.classList.add('wrong-highlight');
+            loseLife();
+            document.getElementById('feedbackLevel1').classList.remove('hidden');
+            document.getElementById('feedbackLevel1').classList.add('error');
+            document.getElementById('feedbackLevel1').textContent = '❌ Periksa kepala not. Kira garisan dan ruang dari bawah ke atas.';
+            setTimeout(() => {
+                btn.classList.remove('wrong-highlight');
+            }, 800);
+        }
+    }
+
+    // ========== 关卡2 渲染 ==========
+    function renderLevel2() {
+        // 装置A 配对界面
+        const container = document.getElementById('pairingContainer');
+        container.innerHTML = '';
+        // 显示打乱顺序的音符（左边）和休止符（右边固定顺序但乱序? 这里简化：每个音符旁边下拉/点击选休止? 改为点击音符再点击休止配对）
+        // 简化：列表显示四个音符，每个旁边有一个休止符下拉? 但设计上我们使用点击配对模式：每个音符行旁边显示休止符按钮(四个休止符) 有点复杂
+        // 使用更直接：四行，每行一个音符和四个休止符小按钮？小按钮太多。采用：点击音符行高亮，然后点击下方休止符来配对。
+        // 为了简单且直观，改为每个音符对应一个选择框? 但游戏要求是配对。我们制作成拖拽太复杂，改为：点击音符，再点击休止符配对。
+        // 我采用：显示四个音符（左边）和四个休止符（右边），点击一个音符再点击一个休止符，如果<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>音乐王国拯救任务 · Misi Selamatkan Kerajaan Muzik</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: 'Segoe UI', 'Comic Sans MS', cursive, sans-serif; }
+  body {
+    background: linear-gradient(145deg, #1a1e2b 0%, #2d2f42 100%);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 16px; margin: 0;
+  }
+  .game-container {
+    max-width: 1000px; width: 100%; background: #3e3f5a;
+    border-radius: 60px 60px 40px 40px;
+    box-shadow: 0 25px 40px rgba(0,0,0,0.7), inset 0 0 0 2px #9b8ec4, inset 0 0 20px #6a5e8a;
+    padding: 24px 24px 32px; position: relative;
+  }
+  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 15px; }
+  .hearts { display: flex; gap: 8px; font-size: 34px; filter: drop-shadow(0 4px 6px black); }
+  .heart { color: #ff4d6d; transition: transform 0.2s; }
+  .heart.lost { color: #4a3f55; transform: scale(0.8); opacity: 0.5; }
+  .inventory {
+    display: flex; gap: 20px; background: #2b2540cc; padding: 8px 20px;
+    border-radius: 100px; border: 2px solid #baa9e6; box-shadow: inset 0 2px 5px #00000055;
+  }
+  .inv-item {
+    display: flex; flex-direction: column; align-items: center; color: #ffe9b0;
+    font-size: 12px; font-weight: bold; text-shadow: 0 2px 3px black;
+    opacity: 0.5; transition: opacity 0.3s, transform 0.2s;
+  }
+  .inv-item.obtained { opacity: 1; transform: scale(1.1); color: #ffd966; }
+  .inv-icon { font-size: 28px; line-height: 1; filter: drop-shadow(0 0 6px gold); }
+
+  .story-panel {
+    background: #efe6ff; border-radius: 80px 80px 40px 40px;
+    padding: 22px 30px 30px;
+    box-shadow: inset 0 0 0 4px #bbadde, inset 0 0 30px #b3a2d6, 0 10px 20px black;
+    min-height: 460px; display: flex; flex-direction: column;
+  }
+  .malay-text {
+    font-size: 20px; color: #1b1426; font-weight: 600; text-align: center;
+    background: #fefbff; padding: 12px 20px; border-radius: 50px;
+    margin-bottom: 18px; box-shadow: inset 0 2px 6px #b6a9d1, 0 4px 0 #7e6b9e;
+    border-bottom: 2px solid #aa99cc; line-height: 1.4;
+  }
+  .chinese-hint { font-size: 15px; color: #4e4370; font-weight: 400; display: block; margin-top: 2px; }
+
+  .btn {
+    border: none; background: linear-gradient(180deg, #ffd966, #e69900);
+    color: #2a1e0c; font-weight: 800; font-size: 22px; padding: 14px 40px;
+    border-radius: 60px; box-shadow: 0 8px 0 #885e00, 0 12px 20px black;
+    cursor: pointer; transition: all 0.08s ease; letter-spacing: 1px;
+    border: 2px solid #ffecb0; text-shadow: 0 1px 0 #ffeeaa;
+    margin: 8px auto; display: inline-block;
+  }
+  .btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #885e00, 0 8px 18px black; }
+  .btn:disabled { opacity: 0.5; transform: translateY(4px); box-shadow: 0 4px 0 #885e00; pointer-events: none; }
+  .btn-small { font-size: 18px; padding: 10px 30px; box-shadow: 0 5px 0 #885e00; }
+
+  .option-group { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+  .option-btn {
+    background: #f2e9ff; border: 4px solid #9382c1; border-radius: 50px;
+    padding: 16px 20px; font-size: 20px; font-weight: 600; color: #2b1e4a;
+    text-align: left; cursor: pointer;
+    box-shadow: 0 6px 0 #574b7c, 0 8px 12px black;
+    transition: all 0.05s ease; display: flex; align-items: center; gap: 16px;
+  }
+  .option-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #574b7c, 0 8px 12px black; }
+  .option-btn.correct-highlight { background: #b9ffb0; border-color: #3b9e3b; box-shadow: 0 4px 0 #1f661f; }
+  .option-btn.wrong-highlight { background: #ffb3b3; border-color: #b33; }
+  .option-btn.paired { opacity: 0.45; pointer-events: none; background: #c8e6c9; border-color: #6a9e6a; }
+
+  /* 桥 */
+  .bridge-area { display: flex; justify-content: center; align-items: flex-end; gap: 8px; margin: 20px 0 10px; }
+  .bridge-slab {
+    width: 80px; height: 80px; background: #8b7ba8; border-radius: 16px;
+    border: 4px solid #483e63; box-shadow: 0 8px 0 #2f2741, 0 12px 12px black;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: white; font-size: 24px; font-weight: bold;
+    transition: background 0.6s, box-shadow 0.6s, transform 0.2s;
+  }
+  .bridge-slab.lit {
+    background: #ffd966; box-shadow: 0 0 20px 8px #ffb347, 0 8px 0 #885e00;
+    border-color: #fff1b0; transform: scale(1.02);
+  }
+  .staff-note { font-size: 38px; line-height: 1; filter: drop-shadow(0 2px 2px black); }
+
+  /* 机器 */
+  .machine-panel { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; margin: 10px 0; }
+  .device {
+    background: #29223b; border-radius: 30px; padding: 18px;
+    box-shadow: inset 0 0 0 3px #7a6a9e, 0 8px 0 #110e1a; flex: 1 1 300px;
+  }
+  .device h3 { color: #ffe3a3; text-align: center; margin-bottom: 12px; font-size: 18px; text-shadow: 0 2px 0 black; }
+  .pair-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #3e3657; padding: 8px 12px; border-radius: 40px; margin: 8px 0;
+    color: white; font-size: 22px; border: 2px solid #8d7db3;
+    cursor: pointer; transition: background 0.2s, box-shadow 0.2s;
+  }
+  .pair-row.selected { box-shadow: 0 0 0 3px #ffd966; background: #5a4d7e; }
+  .pair-row.matched { background: #2e4d2e; border-color: #6fbf6f; opacity: 0.7; pointer-events: none; }
+  .rest-pool { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 10px; }
+  .rest-chip {
+    background: #222; border: 3px solid #bbaaff; border-radius: 30px;
+    padding: 6px 18px; font-size: 28px; cursor: pointer; color: #fff;
+    transition: all 0.15s;
+  }
+  .rest-chip:hover { background: #4a3f6b; }
+  .rest-chip.matched { opacity: 0.3; pointer-events: none; border-color: #6fbf6f; }
+
+  .battery-grid { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
+  .battery-cell {
+    width: 48px; height: 64px; background: #222; border-radius: 12px;
+    border: 3px solid #c7b3ff; display: flex; align-items: center; justify-content: center;
+    font-size: 28px; color: #ffd966; text-shadow: 0 0 6px gold;
+    transition: background 0.4s, box-shadow 0.4s;
+  }
+  .battery-cell.filled { background: #ffb347; box-shadow: 0 0 16px #ffbb33; border-color: #ffea9b; }
+  .battery-cell.filled .sym { color: #1f1a0c; }
+
+  /* 谱表 */
+  .staff-container { background: #fcf7ff; border-radius: 30px; padding: 18px 10px; margin: 16px 0; box-shadow: inset 0 0 0 3px #b6a2e0; }
+  .staff-lines { font-size: 24px; color: #2e1f4b; text-align: center; letter-spacing: 4px; }
+  .clef { font-size: 54px; vertical-align: middle; }
+  .music-symbol { font-size: 28px; margin: 0 2px; display: inline-block; }
+
+  .gate-animation { display: flex; justify-content: center; margin: 20px 0; }
+  .castle-door {
+    width: 180px; height: 240px; background: #6e4f1e; border-radius: 90px 90px 10px 10px;
+    border: 10px solid #c9a859; box-shadow: 0 0 0 4px #3b2b0e, 0 20px 30px black;
+    position: relative; overflow: hidden; transition: transform 1.2s cubic-bezier(0.2,0.9,0.4,1), background 1s, box-shadow 1s;
+  }
+  .castle-door.open {
+    transform: perspective(900px) rotateY(20deg) scale(0.98);
+    background: #ffefc0; box-shadow: 0 0 60px 20px #ffd966;
+  }
+  .door-handle { width: 20px; height: 20px; background: gold; border-radius: 50%; position: absolute; right: 20px; top: 50%; box-shadow: 0 0 12px gold; }
+
+  .crown-reward { font-size: 100px; text-align: center; filter: drop-shadow(0 0 30px gold); animation: float 2s infinite; }
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+  .hidden { display: none !important; }
+  .center { text-align: center; }
+  .mt-20 { margin-top: 20px; }
+  .flex-center { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 16px; }
+  .action-row { display: flex; justify-content: center; gap: 20px; margin-top: 16px; }
+
+  .feedback {
+    text-align: center; font-size: 20px; font-weight: bold; color: #1f3a1f;
+    background: #efffcf; padding: 10px; border-radius: 40px; margin: 12px auto;
+    max-width: 90%; border: 3px solid #9bc46b; box-shadow: inset 0 0 10px #b3d68b;
+  }
+  .feedback.error { background: #ffe0e0; border-color: #d66; color: #5a1e1e; }
+
+  .reset-btn {
+    background: linear-gradient(180deg, #a38fc9, #6b5692);
+    box-shadow: 0 5px 0 #3b2e55; color: white; font-size: 16px; padding: 10px 24px;
+  }
+</style>
+</head>
+<body>
+<div class="game-container" id="gameContainer">
+  <div class="top-bar">
+    <div class="hearts" id="heartsDisplay">
+      <span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span>
+    </div>
+    <div class="inventory" id="inventoryDisplay">
+      <div class="inv-item" id="invPic"><span class="inv-icon">🔮</span><span>Kristal Pic</span></div>
+      <div class="inv-item" id="invDetik"><span class="inv-icon">⚙️</span><span>Kristal Detik</span></div>
+      <div class="inv-item" id="invKunci"><span class="inv-icon">🗝️</span><span>Kunci Muzik</span></div>
+    </div>
+  </div>
+
+  <div class="story-panel" id="storyPanel">
+    <!-- 开场 -->
+    <div id="sceneStart">
+      <div class="malay-text">Oh, tidak! Kerajaan Muzik kehilangan bunyinya!<span class="chinese-hint">音乐王国失去了声音！</span></div>
+      <div class="malay-text" style="font-size:18px;">Jambatan pic telah rosak, mesin detik terhenti dan pintu istana terkunci.<span class="chinese-hint">音符桥损坏，节拍机器停止，城堡大门紧锁。</span></div>
+      <div class="flex-center mt-20"><button class="btn" id="btnStartMission">🎵 Mulakan Misi! 🎵</button></div>
+    </div>
+
+    <!-- 关卡1 -->
+    <div id="sceneLevel1" class="hidden">
+      <div class="malay-text">Misi 1 — Baiki Jambatan Pic<span class="chinese-hint">修复音符桥 · 读出石板上的音名</span></div>
+      <div class="bridge-area" id="bridgeSlabs"></div>
+      <div class="malay-text" style="font-size:16px; background:#e8dcff;">Baca not dari kiri ke kanan. Pilih kod yang betul untuk membaiki jambatan.<span class="chinese-hint">从左到右读谱，选择正确的修桥密码。</span></div>
+      <div class="option-group" id="level1Options"></div>
+      <div id="feedbackLevel1" class="feedback hidden"></div>
+    </div>
+
+    <!-- 关卡2 -->
+    <div id="sceneLevel2" class="hidden">
+      <div class="malay-text">Misi 2 — Hidupkan Mesin Detik<span class="chinese-hint">启动节拍机器 · 配对休止符 & 补足能量</span></div>
+      <div class="machine-panel">
+        <div class="device">
+          <h3>⚡ 装置A：连接能量线 ⚡</h3>
+          <div style="color:#ddd;font-size:14px;margin-bottom:8px;">Klik not, kemudian klik tanda rehat yang sama nilainya.</div>
+          <div id="pairNotesContainer"></div>
+          <div class="rest-pool" id="restPool"></div>
+        </div>
+        <div class="device">
+          <h3>🔋 装置B：4拍能量</h3>
+          <div class="battery-grid" id="batteryGrid">
+            <div class="battery-cell filled" id="bat1"><span class="sym">𝅗𝅥</span></div>
+            <div class="battery-cell" id="bat2"></div>
+            <div class="battery-cell" id="bat3"></div>
+            <div class="battery-cell" id="bat4"></div>
+          </div>
+          <div style="color:#ddd;font-size:14px;text-align:center;margin:8px 0;">Mesin perlukan 4 detik. Satu minim = 2 detik. Pilih set untuk lengkapkan 2 detik lagi.</div>
+          <div id="level2Options" class="option-group"></div>
+        </div>
+      </div>
+      <div id="feedbackLevel2" class="feedback hidden"></div>
+    </div>
+
+    <!-- 关卡3 -->
+    <div id="sceneLevel3" class="hidden">
+      <div class="malay-text">Misi 3 — Buka Pintu Istana<span class="chinese-hint">音乐密码 · 读谱、听辨、拍节奏</span></div>
+      <div class="staff-container">
+        <div class="staff-lines">
+          <span class="clef">𝄞</span>
+          <span class="music-symbol">G♩</span> <span class="music-symbol">A♩</span> <span class="music-symbol">B𝅗𝅥</span>
+          <span style="margin:0 12px;">|</span>
+          <span class="music-symbol">C′𝅘𝅥𝅯</span> <span class="music-symbol">D′𝅘𝅥𝅯</span> <span class="music-symbol">𝄽</span> <span class="music-symbol">G𝅗𝅥</span>
+        </div>
+        <div style="font-size:13px;color:#493a6b;text-align:center;margin-top:8px;">Bar 1: G A B(二分) | Bar 2: C' D'(八分) 休止 G(二分)</div>
+      </div>
+      <div class="malay-text" style="font-size:16px;">Baca nama pic dan nilai setiap not. Kenal pasti tanda rehat.<span class="chinese-hint">读出音名与时值，注意休止符。</span></div>
+      <div class="action-row"><button class="btn btn-small" id="btnHint">💡 Petunjuk</button></div>
+      <div id="hintArea" class="hidden" style="background:#ffeaa5;padding:12px;border-radius:30px;margin:12px;font-size:16px;">
+        💡 Bar 1: G♩ A♩ B𝅗𝅥 (共4拍)。Bar 2: C'𝅘𝅥𝅯 D'𝅘𝅥𝅯 = 1拍（均匀两下），𝄽 = 1拍（休止不拍），G𝅗𝅥 = 2拍（第3拍拍手，第4拍等待）。
+      </div>
+      <div class="malay-text" style="font-size:16px;">Dengar tiga kod irama. Pilih kod yang sepadan dengan notasi.<span class="chinese-hint">听三段节奏，选择与乐谱一致的版本。</span></div>
+      <div class="option-group" id="level3Options"></div>
+      <div id="feedbackLevel3" class="feedback hidden"></div>
+      <div id="clapSection" class="hidden">
+        <div class="malay-text" style="font-size:18px;">👏 Giliran kamu! Tepuk kod irama. Jangan bertepuk semasa tanda rehat.<span class="chinese-hint">跟着拍一次（第1拍C'D'均匀两下；第2拍休止；第3拍G）</span></div>
+        <div class="flex-center"><button class="btn btn-small" id="btnClapDone">✅ Saya Sudah Cuba!</button></div>
+      </div>
+      <div class="gate-animation"><div class="castle-door" id="castleDoor"><div class="door-handle"></div></div></div>
+    </div>
+
+    <!-- 结局 -->
+    <div id="sceneEnd" class="hidden">
+      <div class="malay-text">Tahniah, Penyelamat Muzik!<span class="chinese-hint">恭喜！音乐王国恢复声音！</span></div>
+      <div class="crown-reward" id="crownReward">👑</div>
+      <div class="malay-text" style="font-size:17px;">Kamu telah membaca not, memadankan nilai not dengan tanda rehat dan menggunakan notasi untuk menghasilkan corak irama.<span class="chinese-hint">你读谱、配对休止符、并用节奏拯救了王国！</span></div>
+      <div style="background:#e8dcff;border-radius:40px;padding:18px;margin:18px 0;">
+        <p style="font-size:19px;font-weight:bold;color:#2b1e4a;text-align:center;margin-bottom:10px;">Misi manakah yang paling mencabar?</p>
+        <div class="option-group" style="flex-direction:row;flex-wrap:wrap;justify-content:center;">
+          <button class="option-btn" style="padding:10px 22px;font-size:15px;" onclick="selectReflection(this)">Mengenal kedudukan not</button>
+          <button class="option-btn" style="padding:10px 22px;font-size:15px;" onclick="selectReflection(this)">Mengira nilai not dan tanda rehat</button>
+          <button class="option-btn" style="padding:10px 22px;font-size:15px;" onclick="selectReflection(this)">Membaca dan menepuk notasi</button>
+        </div>
+      </div>
+      <div class="flex-center"><button class="btn" id="btnQuiz">📝 Teruskan ke Kuiz Interaktif</button></div>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;margin-top:12px;">
+    <button class="btn reset-btn" id="resetGame">🔄 Main Semula</button>
+  </div>
+</div>
+
+<script>
+// ================= 状态 =================
+let lives = 3;
+let inventory = { pic: false, detik: false, kunci: false };
+
+// 关卡1
+const slabsData = [
+  { note: 'B', position: '第三条线' },
+  { note: 'G', position: '第二条线' },
+  { note: 'D′', position: '第四条线' },
+  { note: 'A', position: '第二个间' },
+  { note: 'C′', position: '第三个间' }
+];
+let level1Answered = false;
+
+// 关卡2
+const pairData = [
+  { noteSym: '𝅝', noteName: 'Semibrif', restSym: '𝄻', restName: 'Rehat semibrif' },
+  { noteSym: '𝅗𝅥', noteName: 'Minim', restSym: '𝄼', restName: 'Rehat minim' },
+  { noteSym: '♩', noteName: 'Krocet', restSym: '𝄽', restName: 'Rehat krocet' },
+  { noteSym: '𝅘𝅥𝅯', noteName: 'Kuaver', restSym: '𝄾', restName: 'Rehat kuaver' }
+];
+// 显示顺序打乱
+const pairDisplayOrder = [2, 0, 3, 1];
+let pairMatched = [false, false, false, false]; // 按 pairData 索引
+let selectedNoteIndex = null;
+let deviceADone = false;
+let deviceBDone = false;
+
+const batteryOptions = [
+  { id: 'A', desc: '𝅘𝅥𝅯 + 𝅘𝅥𝅯 + 𝄽', value: 2, correct: true },
+  { id: 'B', desc: '♩ + 𝅘𝅥𝅯', value: 1.5, correct: false },
+  { id: 'C', desc: '𝅗𝅥 + 𝄽', value: 3, correct: false }
+];
+
+// 关卡3
+let level3AudioSelected = false;
+let level3ClapDone = false;
+
+// ================= 音效 =================
+let audioCtx = null;
+function initAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+function playTone(freq, duration, type = 'sine', vol = 0.18) {
+  try {
+    initAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type; osc.frequency.value = freq; gain.gain.value = vol;
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+    osc.stop(audioCtx.currentTime + duration);
+  } catch (e) {}
+}
+function playSuccess() { playTone(660,0.15,'triangle'); setTimeout(()=>playTone(880,0.25,'triangle'),120); }
+function playWrong()   { playTone(220,0.35,'sawtooth',0.12); }
+function playCrystal() { playTone(1046,0.1,'sine'); setTimeout(()=>playTone(1318,0.2,'sine'),100); setTimeout(()=>playTone(1568,0.3,'sine'),200); }
+function playVictory() { [523,659,784,1046].forEach((f,i)=>setTimeout(()=>playTone(f,0.3,'triangle'),i*150)); }
+
+// ================= UI 辅助 =================
+function updateHearts() {
+  document.querySelectorAll('.heart').forEach((h,i)=>h.classList.toggle('lost', i>=lives));
+}
+function updateInventory() {
+  document.getElementById('invPic').classList.toggle('obtained', inventory.pic);
+  document.getElementById('invDetik').classList.toggle('obtained', inventory.detik);
+  document.getElementById('invKunci').classList.toggle('obtained', inventory.kunci);
+}
+function showScene(id) {
+  ['sceneStart','sceneLevel1','sceneLevel2','sceneLevel3','sceneEnd'].forEach(s=>{
+    document.getElementById(s).classList.add('hidden');
+  });
+  document.getElementById(id).classList.remove('hidden');
+}
+function loseLife() {
+  if (lives>0) {
+    lives--; updateHearts(); playWrong();
+    if (lives===0) setTimeout(()=>{ alert('Nyawa habis! Cuba lagi dengan "Main Semula".'); resetGame(); }, 400);
+  }
+}
+
+// ================= 关卡1 =================
+function renderLevel1() {
+  const container = document.getElementById('bridgeSlabs');
+  container.innerHTML = '';
+  slabsData.forEach((slab, idx) => {
+    const div = document.createElement('div');
+    div.className = 'bridge-slab'; div.id = `slab-${idx}`;
+    div.innerHTML = `<span class="staff-note">🎵</span><span style="font-size:11px;opacity:0.85;">${slab.position}</span>`;
+    container.appendChild(div);
+  });
+  const opts = ['B – G – D′ – A – C′', 'B – A – D′ – G – C′', 'C′ – G – D′ – A – B'];
+  const optContainer = document.getElementById('level1Options');
+  optContainer.innerHTML = '';
+  opts.forEach((text, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn'; btn.textContent = text;
+    btn.addEventListener('click', () => handleLevel1Choice(idx, btn));
+    optContainer.appendChild(btn);
+  });
+  document.getElementById('feedbackLevel1').classList.add('hidden');
+}
+function handleLevel1Choice(idx, btn) {
+  if (level1Answered) return;
+  if (idx === 0) {
+    level1Answered = true;
+    playSuccess();
+    slabsData.forEach((_,i)=>setTimeout(()=>document.getElementById(`slab-${i}`).classList.add('lit'), i*180));
+    document.querySelectorAll('#level1Options .option-btn').forEach(b=>b.disabled=true);
+    btn.classList.add('correct-highlight');
+    const fb = document.getElementById('feedbackLevel1');
+    fb.classList.remove('hidden','error');
+    fb.textContent = '✅ Jambatan berjaya dibaiki! Kamu memperoleh Kristal Pic!';
+    inventory.pic = true; updateInventory(); playCrystal();
+    setTimeout(()=>showScene('sceneLevel2'), 1800);
+  } else {
+    btn.classList.add('wrong-highlight');
+    loseLife();
+    const fb = document.getElementById('feedbackLevel1');
+    fb.classList.remove('hidden'); fb.classList.add('error');
+    fb.textContent = '❌ Periksa kepala not. Kira garisan dan ruang dari bawah ke atas.';
+    setTimeout(()=>btn.classList.remove('wrong-highlight'), 800);
+  }
+}
+
+// ================= 关卡2 =================
+function renderLevel2() {
+  // 装置A
+  const notesCont = document.getElementById('pairNotesContainer');
+  notesCont.innerHTML = '';
+  pairDisplayOrder.forEach((pairIdx, displayPos) => {
+    const row = document.createElement('div');
+    row.className = 'pair-row'; row.dataset.pairIdx = pairIdx;
+    row.id = `pairRow-${pairIdx}`;
+    row.innerHTML = `<span style="font-size:30px;">${pairData[pairIdx].noteSym}</span><span>${pairData[pairIdx].noteName}</span>`;
+    if (pairMatched[pairIdx]) row.classList.add('matched');
+    row.addEventListener('click', () => selectNoteRow(pairIdx));
+    notesCont.appendChild(row);
+  });
+  // 休止符池（打乱）
+  const restPool = document.getElementById('restPool');
+  restPool.innerHTML = '';
+  const restOrder = [1,3,0,2];
+  restOrder.forEach(pairIdx => {
+    const chip = document.createElement('div');
+    chip.className = 'rest-chip'; chip.dataset.pairIdx = pairIdx;
+    chip.id = `restChip-${pairIdx}`;
+    chip.textContent = pairData[pairIdx].restSym;
+    chip.title = pairData[pairIdx].restName;
+    if (pairMatched[pairIdx]) chip.classList.add('matched');
+    chip.addEventListener('click', () => handleRestClick(pairIdx));
+    restPool.appendChild(chip);
+  });
+  // 电池选项
+  const optCont = document.getElementById('level2Options');
+  optCont.innerHTML = '';
+  batteryOptions.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn'; btn.style.fontSize = '18px';
+    btn.textContent = `${opt.id}: ${opt.desc}`;
+    btn.addEventListener('click', () => handleBatteryChoice(opt, btn));
+    optCont.appendChild(btn);
+  });
+  // 电池格
+  ['bat2','bat3','bat4'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('filled'); el.innerHTML = '';
+  });
+  document.getElementById('feedbackLevel2').classList.add('hidden');
+  deviceADone = pairMatched.every(v=>v);
+  deviceBDone = false;
+  if (deviceADone) document.querySelectorAll('#pairNotesContainer .pair-row, #restPool .rest-chip').forEach(el=>el.classList.add('matched'));
+}
+
+function selectNoteRow(pairIdx) {
+  if (pairMatched[pairIdx]) return;
+  selectedNoteIndex = pairIdx;
+  document.querySelectorAll('#pairNotesContainer .pair-row').forEach(r=>r.classList.remove('selected'));
+  document.getElementById(`pairRow-${pairIdx}`).classList.add('selected');
+}
+function handleRestClick(restPairIdx) {
+  if (selectedNoteIndex === null) { playTone(300,0.2,'sine',0.1); return; }
+  if (pairMatched[restPairIdx] || pairMatched[selectedNoteIndex]) return;
+  if (selectedNoteIndex === restPairIdx) {
+    // 正确配对
+    pairMatched[selectedNoteIndex] = true;
+    document.getElementById(`pairRow-${selectedNoteIndex}`).classList.remove('selected');
+    document.getElementById(`pairRow-${selectedNoteIndex}`).classList.add('matched');
+    document.getElementById(`restChip-${selectedNoteIndex}`).classList.add('matched');
+    playSuccess();
+    selectedNoteIndex = null;
+    if (pairMatched.every(v=>v)) {
+      deviceADone = true;
+      document.getElementById('feedbackLevel2').classList.remove('hidden','error');
+      document.getElementById('feedbackLevel2').textContent = '✅ 装置A能量线连接完成！';
+      checkLevel2Completion();
+    }
+  } else {
+    loseLife();
+    const fb = document.getElementById('feedbackLevel2');
+    fb.classList.remove('hidden'); fb.classList.add('error');
+    fb.textContent = '❌ Bunyi dan senyap boleh mempunyai    // 接上面 handleRestClick 中不完整的 else 分支
+    fb.textContent = '❌ Bunyi dan senyap boleh mempunyai tempoh yang sama. Bandingkan nilai kedua-dua simbol.';
+    setTimeout(() => {
+      document.getElementById(`pairRow-${selectedNoteIndex}`).classList.remove('selected');
+      selectedNoteIndex = null;
+      fb.classList.add('hidden');
+    }, 1200);
+  }
+}
+
+function handleBatteryChoice(opt, btn) {
+  if (deviceBDone) return;
+  if (opt.correct) {
+    deviceBDone = true;
+    btn.classList.add('correct-highlight');
+    document.querySelectorAll('#level2Options .option-btn').forEach(b => b.disabled = true);
+    // 电池逐格充满：bat2 和 bat3 显示八分音符，bat4 显示四分休止
+    const fillSymbols = ['𝅘𝅥𝅯', '𝅘𝅥𝅯', '𝄽'];
+    fillSymbols.forEach((sym, i) => {
+      setTimeout(() => {
+        const cell = document.getElementById(`bat${i + 2}`);
+        cell.classList.add('filled');
+        cell.innerHTML = `<span class="sym">${sym}</span>`;
+        playTone(440 + i * 110, 0.15, 'sine', 0.12);
+      }, i * 250);
+    });
+    setTimeout(() => {
+      document.getElementById('feedbackLevel2').classList.remove('hidden', 'error');
+      document.getElementById('feedbackLevel2').textContent = '✅ Tenaga mencukupi! Kamu memperoleh Kristal Detik!';
+      playCrystal();
+      inventory.detik = true;
+      updateInventory();
+      checkLevel2Completion();
+    }, 900);
+  } else {
+    btn.classList.add('wrong-highlight');
+    loseLife();
+    document.getElementById('feedbackLevel2').classList.remove('hidden');
+    document.getElementById('feedbackLevel2').classList.add('error');
+    document.getElementById('feedbackLevel2').textContent = '❌ Tenaga tidak tepat. Kira semula nilai setiap simbol.';
+    setTimeout(() => btn.classList.remove('wrong-highlight'), 800);
+  }
+}
+
+function checkLevel2Completion() {
+  if (deviceADone && deviceBDone) {
+    setTimeout(() => {
+      showScene('sceneLevel3');
+      renderLevel3();
+    }, 1600);
+  }
+}
+
+// ================= 关卡3 =================
+function renderLevel3() {
+  level3AudioSelected = false;
+  level3ClapDone = false;
+  document.getElementById('castleDoor').classList.remove('open');
+  document.getElementById('clapSection').classList.add('hidden');
+  document.getElementById('hintArea').classList.add('hidden');
+  document.getElementById('feedbackLevel3').classList.add('hidden');
+
+  const optCont = document.getElementById('level3Options');
+  optCont.innerHTML = '';
+  const audioOptions = [
+    { id: 'A', label: 'Kod A', desc: 'Bar 2 把两个八分音符拍成两拍（错误）' },
+    { id: 'B', label: 'Kod B', desc: '完全符合乐谱 ✅' },
+    { id: 'C', label: 'Kod C', desc: 'Bar 2 在四分休止符处也拍手（错误）' }
+  ];
+  audioOptions.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.style.fontSize = '18px';
+    btn.innerHTML = `<strong>${opt.label}</strong> — ${opt.desc} <span style="margin-left:auto;font-size:22px;">🔊</span>`;
+    btn.addEventListener('click', () => handleLevel3Choice(idx, btn));
+    optCont.appendChild(btn);
+  });
+}
+
+// 用 Web Audio 模拟三段节奏（4拍预备 + 两小节）
+function playRhythmOption(optionIdx) {
+  initAudio();
+  const now = audioCtx.currentTime;
+  const beat = 0.5; // 每拍0.5秒
+  const start = now + 0.2;
+  const click = (time, freq = 880) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.value = freq;
+    osc.type = 'square';
+    gain.gain.value = 0.12;
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(time);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.08);
+    osc.stop(time + 0.09);
+  };
+  // 预备拍（4拍）
+  for (let i = 0; i < 4; i++) click(start + i * beat, 660);
+  const musicStart = start + 4 * beat;
+  // 第一小节：G(1) A(1) B(2) —— 第1、2、3拍拍，第4拍等待
+  click(musicStart + 0 * beat);
+  click(musicStart + 1 * beat);
+  click(musicStart + 2 * beat);
+  // 第4拍等待（二分音符时值完成）
+
+  // 第二小节
+  const bar2Start = musicStart + 4 * beat;
+  if (optionIdx === 1) {
+    // 正确：第1拍内均匀两下，第2拍休止，第3拍拍，第4拍等待
+    click(bar2Start + 0 * beat);
+    click(bar2Start + 0.5 * beat);
+    // 第2拍休止
+    click(bar2Start + 2 * beat);
+  } else if (optionIdx === 0) {
+    // 错误A：把两个八分音符拍成两拍（分别在第1、2拍）
+    click(bar2Start + 0 * beat);
+    click(bar2Start + 1 * beat);
+    // 四分休止（第3拍不拍），G二分从第3拍开始？此处错误版本改为在第4拍拍一下
+    click(bar2Start + 3 * beat);
+  } else if (optionIdx === 2) {
+    // 错误C：第1拍两下，第2拍休止处也拍手
+    click(bar2Start + 0 * beat);
+    click(bar2Start + 0.5 * beat);
+    click(bar2Start + 1 * beat); // 休止处错误拍手
+    click(bar2Start + 2 * beat);
+  }
+}
+
+function handleLevel3Choice(idx, btn) {
+  if (level3AudioSelected) return;
+  // 先播放对应节奏
+  playRhythmOption(idx);
+  // 给用户听完再判断（延迟）
+  setTimeout(() => {
+    if (idx === 1) {
+      level3AudioSelected = true;
+      playSuccess();
+      document.querySelectorAll('#level3Options .option-btn').forEach(b => b.disabled = true);
+      btn.classList.add('correct-highlight');
+      const fb = document.getElementById('feedbackLevel3');
+      fb.classList.remove('hidden', 'error');
+      fb.textContent = '✅ Betul! Kod irama sepadan. Sekarang giliran kamu menepuk!';
+      document.getElementById('clapSection').classList.remove('hidden');
+    } else {
+      btn.classList.add('wrong-highlight');
+      loseLife();
+      const fb = document.getElementById('feedbackLevel3');
+      fb.classList.remove('hidden');
+      fb.classList.add('error');
+      fb.textContent = '❌ Dengar lagi. Pastikan dua not kuaver dalam satu detik dan jangan bertepuk semasa rehat.';
+      setTimeout(() => btn.classList.remove('wrong-highlight'), 800);
+    }
+  }, 3400); // 等4拍预备+2小节播放完
+}
+
+function handleClapDone() {
+  if (level3ClapDone) return;
+  level3ClapDone = true;
+  document.getElementById('btnClapDone').disabled = true;
+  // 开门动画
+  document.getElementById('castleDoor').classList.add('open');
+  playVictory();
+  inventory.kunci = true;
+  updateInventory();
+  setTimeout(() => {
+    showScene('sceneEnd');
+    playVictory();
+    document.getElementById('crownReward').textContent = '👑';
+  }, 1600);
+}
+
+function selectReflection(btn) {
+  document.querySelectorAll('#sceneEnd .option-btn').forEach(b => b.classList.remove('correct-highlight'));
+  btn.classList.add('correct-highlight');
+  playTone(660, 0.15, 'triangle');
+}
+
+// ================= 重置 =================
+function resetGame() {
+  lives = 3;
+  inventory = { pic: false, detik: false, kunci: false };
+  updateHearts();
+  updateInventory();
+
+  level1Answered = false;
+  pairMatched = [false, false, false, false];
+  selectedNoteIndex = null;
+  deviceADone = false;
+  deviceBDone = false;
+  level3AudioSelected = false;
+  level3ClapDone = false;
+
+  document.getElementById('castleDoor').classList.remove('open');
+  document.getElementById('clapSection').classList.add('hidden');
+  document.getElementById('hintArea').classList.add('hidden');
+  document.querySelectorAll('.feedback').forEach(f => f.classList.add('hidden'));
+  document.querySelectorAll('.option-btn').forEach(b => {
+    b.classList.remove('correct-highlight', 'wrong-highlight', 'paired');
+    b.disabled = false;
+  });
+
+  renderLevel1();
+  renderLevel2();
+  renderLevel3();
+  showScene('sceneStart');
+}
+
+// ================= 事件绑定 =================
+document.addEventListener('DOMContentLoaded', () => {
+  // 首次点击任意位置初始化音频上下文
+  document.body.addEventListener('click', () => initAudio(), { once: true });
+
+  document.getElementById('btnStartMission').addEventListener('click', () => {
+    initAudio();
+    renderLevel1();
+    showScene('sceneLevel1');
+  });
+
+  document.getElementById('btnHint').addEventListener('click', () => {
+    document.getElementById('hintArea').classList.toggle('hidden');
+  });
+
+  document.getElementById('btnClapDone').addEventListener('click', handleClapDone);
+
+  document.getElementById('btnQuiz').addEventListener('click', () => {
+    playTone(880, 0.2, 'triangle');
+    alert('Kuiz Interaktif akan dibuka. (Dalam versi penuh, pautkan ke kuiz anda.)');
+  });
+
+  document.getElementById('resetGame').addEventListener('click', resetGame);
+
+  // 初始化渲染
+  renderLevel1();
+  renderLevel2();
+  renderLevel3();
+  updateHearts();
+  updateInventory();
+});
+</script>
+</body>
+</html>
